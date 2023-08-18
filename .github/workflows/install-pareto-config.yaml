@@ -108,5 +108,5 @@ jobs:
               with:
                 app-name: 'pareto-function-14874'
                 slot-name: 'production'
-                package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }
+                package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
       
