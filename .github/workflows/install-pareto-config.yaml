@@ -63,7 +63,8 @@ jobs:
         echo "Config-eventhubName=$eventhubName" >> $GITHUB_ENV
         echo "Event Hubname: ${{ env.Config-eventhubName }} using Namespace: ${{ env.Config-namespaceName }}"
 
-        az eventhubs eventhub create --name $eventhubName --resource-group ${{ github.event.inputs.resource_group }} --namespace-name $namespaceName
+        az eventhubs namespace create --name $namespaceName --resource-group ${{ github.event.inputs.resource_group }}  -l ${{ github.event.inputs.azure_region }}
+        az eventhubs eventhub create  --name $eventhubName  --resource-group ${{ github.event.inputs.resource_group }} --namespace-name $namespaceName
        
         # Added Listen and Send as rights
         az eventhubs eventhub authorization-rule create --authorization-rule-name ${{ env.HUB_RULE_NAME }} --eventhub-name $eventhubName --namespace-name $namespaceName --resource-group {{ github.event.inputs.resource_group }} --rights Listen Send
