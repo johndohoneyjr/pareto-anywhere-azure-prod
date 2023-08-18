@@ -1,0 +1,12 @@
+name: Install CLI
+description: Install and Configure Azure CLI
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Azure CLI extensions
+      shell: bash
+      run: |
+        az extension add --name azure-iot
+        az extension add --upgrade --name webpubsub    
+          

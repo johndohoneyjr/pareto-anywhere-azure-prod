@@ -1,0 +1,86 @@
+name: Azure Pareto ARM Deployment
+on:
+  workflow_dispatch:
+    inputs:
+
+      iot-hub-name:
+        description: 'IOT Hub Name'
+        required: true
+        default: 'paretoIOTHub'
+
+      resource_group:
+        description: 'Resource Group Name - setup in shell script'
+        required: true
+        default: 'pareto-aruba-rg'
+
+      azure_region:
+        description: 'Azure Region'
+        required: true
+        default: 'westus'
+
+# Environment Variables
+env:
+  AZURE_CLI_VERSION: 2.26.1
+
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@main
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.CLUSTER_SERVICE_PRINCIPAL }}
+        # The above way has been a problem sometimes
+        # client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        # tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        # subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Install az cli 
+      uses: ./.github/actions/install-az-cli
+      with:
+        version: ${{ env.AZURE_CLI_VERSION }}
+
+    # Create IOT Hub
+    - name: Create IOT Hub
+      shell: bash
+      run: |
+        # define variables for configuration to set for Azure Functions
+        hubname=""
+        hubendpoint=""
+
+        # create IOT Hub
+        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ github.event.inputs.resource_group }} --sku S1 --location ${{ github.event.inputs.azure_region }}
+        az iot hub device-identity create --device-id iot-pareto-device --hub-name ${{ github.event.inputs.iot-hub-name }}
+
+        hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
+        # Event Hub-compatible endpoint
+        export hubendpoint=$(az iot hub connection-string show  -n iot-pareto-hub --default --output tsv)
+
+        # set them as GitHub ENV variables
+        echo "Config-hubname=$hubname" >> $GITHUB_ENV
+        echo "Config-hubendpoint=$hubendpoint" >> $GITHUB_ENV
+
+        # retrieve these GitHub ENV variables
+        echo "Hubname: ${{ env.Config-hubname }} using Connection String: ${{ env.Config-hubendpoint }}"
+
+    # Create Event Hub and Namespace
+    - name: Create Event Hub
+      shell: bash
+      run: |
+        # define variables for configuration to set for Azure Functions
+        namespaceName="aruba$RANDOM"
+        eventhubName="arubahub$RANDOM"
+         # set them as GitHub ENV variables
+        echo "Config-namespaceName=$namespaceName" >> $GITHUB_ENV
+        echo "Config-eventhubName=$eventhubName" >> $GITHUB_ENV
+
+        az eventhubs eventhub create --name ${{ env.Config-eventhubName }} --resource-group {{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }}
+        # Added Listen and Send as rights
+        az eventhubs eventhub authorization-rule create --authorization-rule-name aruba-hub-rule --eventhub-name ${{ env.Config-eventhubName }} --namespace-name ${{ env.Config-namespaceName }} --resource-group {{ github.event.inputs.resource_group }} --rights Listen Send
+        az eventhubs eventhub authorization-rule keys list --resource-group {{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name aruba-hub-rule
+
+
+
