@@ -20,7 +20,10 @@ on:
 
 # Environment Variables
 env:
-  AZURE_CLI_VERSION: 2.26.1
+  HUB_RULE_NAME: "aruba-hub-rule"
+  AZURE_FUNCTIONAPP_NAME: 'pareto-function-apps'  
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'    
+  NODE_VERSION: '16.x' 
 
 
 jobs:
@@ -40,8 +43,7 @@ jobs:
 
     - name: Install az cli 
       uses: ./.github/actions/install-az-cli
-      with:
-        version: ${{ env.AZURE_CLI_VERSION }}
+
 
     # Create IOT Hub
     - name: Create IOT Hub
@@ -79,11 +81,39 @@ jobs:
 
         az eventhubs eventhub create --name ${{ env.Config-eventhubName }} --resource-group {{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }}
         # Added Listen and Send as rights
-        az eventhubs eventhub authorization-rule create --authorization-rule-name aruba-hub-rule --eventhub-name ${{ env.Config-eventhubName }} --namespace-name ${{ env.Config-namespaceName }} --resource-group {{ github.event.inputs.resource_group }} --rights Listen Send
-        az eventhubs eventhub authorization-rule keys list --resource-group {{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name aruba-hub-rule
+        az eventhubs eventhub authorization-rule create --authorization-rule-name ${{ env.HUB_RULE_NAME }} --eventhub-name ${{ env.Config-eventhubName }} --namespace-name ${{ env.Config-namespaceName }} --resource-group {{ github.event.inputs.resource_group }} --rights Listen Send
+        az eventhubs eventhub authorization-rule keys list --resource-group {{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name ${{ env.HUB_RULE_NAME }}
 
+    # Create WebPubSub
+    - name: Create WebPubSub
+      shell: bash
+      run: |
+         export pubsubName="pubsub$RANDOM"
+         # set them as GitHub ENV variables
+         echo "Config-pubsubName=$pubsubName" >> $GITHUB_ENV
+
+         az webpubsub create --name  ${{ env.Config-pubsubName }} --resource-group {{ github.event.inputs.resource_group }} --location ${{ github.event.inputs.azure_region }} --sku Free_F1
+         psendpoint=$(az webpubsub key show  --name ${{ env.Config-pubsubName }} --resource-group {{ github.event.inputs.resource_group }} --query primaryConnectionString --output tsv)
+         echo "Config-psendpoint=$psendpoint" >> $GITHUB_ENV
+      
+    # Create Storage Account and remaining configuration variables
+    - name: Create Storage Account
+      shell: bash
+      run: |
+         export saName="arubastorage$RANDOM"
+         # set them as GitHub ENV variables
+         echo "Config-saName=$saName" >> $GITHUB_ENV
+         az storage account az storage account create --name ${{ env.Config-saName }} --resource-group {{ github.event.inputs.resource_group }} --sku Standard_LRS --location ${{ github.event.inputs.azure_region }} 
+      
+         storageConnection=$(az storage account show-connection-string --name ${{ env.Config-saName }} --resource-group {{ github.event.inputs.resource_group }} --output tsv)
+         sendAppSetting=$(az eventhubs eventhub authorization-rule keys list --resource-group {{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name ${{ env.HUB_RULE_NAME }} | jq  .primaryConnectionString)
+         echo "Config-storageConnection=$storageConnection" >> $GITHUB_ENV
+         echo "Config-sendAppSetting=$sendAppSetting" >> $GITHUB_ENV
+         
+         
   build-and-deploy-functionapp:
           runs-on: windows-latest
+          needs: build-and-deploy-infrastructure
           steps:
             - name: 'Checkout GitHub Action'
               uses: actions/checkout@v2
@@ -98,8 +128,6 @@ jobs:
               run: |
                 pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
                 npm install
-                npm run build --if-present
-                npm run test --if-present
                 popd
       
             - name: 'Run Azure Functions Action'
@@ -109,4 +137,32 @@ jobs:
                 app-name: 'pareto-function-14874'
                 slot-name: 'production'
                 package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-      
+
+           # Create Function App Configuration
+            - name: Set FunctionApp Configuration
+              shell: bash
+              run: |
+                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "AzureWebJobsStorage=${{ env.Config-storageConnection }}" 
+                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "EventHubConnectionString=${{ env.Config-hubendpoint }}""
+                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "EventHubSendAppSetting=${{ env.Config-sendAppSetting }}" 
+                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "WebPubSubConnectionString= ${{ env.Config-psendpoint }} }}"
+                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "iot_hub_name=${{ env.Config-hubname }}"
+                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "event_hub_name=${{ env.Config-eventhubName }}"
+                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
+              
+                # Stitch together the resource file
+                cat <<EOF > ./local.settings.json
+                {
+                  "IsEncrypted": false,
+                  "Values": {
+                    "FUNCTIONS_WORKER_RUNTIME": "node",
+                    "AzureWebJobsStorage": "${{ env.Config-storageConnection }}",
+                    "EventHubConnectionString": ${{ env.Config-hubendpoint }}",
+                    "EventHubSendAppSetting": ${{ env.Config-sendAppSetting }},
+                    "WebPubSubConnectionString": ${{ env.Config-psendpoint }} }},
+                    "iot_hub_name": ${{ env.Config-hubname }},
+                    "event_hub_name": ${{ env.Config-eventhubName }},
+                    "web_pub_sub_hub_name": ${{ env.Config-pubsubName }}
+                  }
+                }
+                EOF
