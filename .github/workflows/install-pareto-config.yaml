@@ -24,7 +24,7 @@ env:
 
 
 jobs:
-  build-and-deploy:
+  build-and-deploy-infrastructure:
     runs-on: ubuntu-latest
     steps:
 
@@ -82,5 +82,31 @@ jobs:
         az eventhubs eventhub authorization-rule create --authorization-rule-name aruba-hub-rule --eventhub-name ${{ env.Config-eventhubName }} --namespace-name ${{ env.Config-namespaceName }} --resource-group {{ github.event.inputs.resource_group }} --rights Listen Send
         az eventhubs eventhub authorization-rule keys list --resource-group {{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name aruba-hub-rule
 
-
-
+  build-and-deploy-functionapp:
+          runs-on: windows-latest
+          steps:
+            - name: 'Checkout GitHub Action'
+              uses: actions/checkout@v2
+      
+            - name: Setup Node ${{ env.NODE_VERSION }} Environment
+              uses: actions/setup-node@v1
+              with:
+                node-version: ${{ env.NODE_VERSION }}
+      
+            - name: 'Resolve Project Dependencies Using Npm'
+              shell: pwsh
+              run: |
+                pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+                npm install
+                npm run build --if-present
+                npm run test --if-present
+                popd
+      
+            - name: 'Run Azure Functions Action'
+              uses: Azure/functions-action@v1
+              id: fa
+              with:
+                app-name: 'pareto-function-14874'
+                slot-name: 'production'
+                package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }
+      
