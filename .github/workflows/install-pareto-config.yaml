@@ -24,6 +24,7 @@ env:
   AZURE_FUNCTIONAPP_NAME: 'pareto-function-apps'  
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'    
   NODE_VERSION: '16.x' 
+  DEVICE_NAME: 'iot-pareto-device'
 
 
 jobs:
@@ -49,17 +50,13 @@ jobs:
     - name: Create IOT Hub
       shell: bash
       run: |
-        # define variables for configuration to set for Azure Functions
-        hubname=""
-        hubendpoint=""
-
         # create IOT Hub
         az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ github.event.inputs.resource_group }} --sku S1 --location ${{ github.event.inputs.azure_region }}
-        az iot hub device-identity create --device-id iot-pareto-device --hub-name ${{ github.event.inputs.iot-hub-name }}
+        az iot hub device-identity create --device-id ${{ env.DEVICE_NAME }}" --hub-name ${{ github.event.inputs.iot-hub-name }}
 
         hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
         # Event Hub-compatible endpoint
-        export hubendpoint=$(az iot hub connection-string show  -n iot-pareto-hub --default --output tsv)
+        export hubendpoint=$(az iot hub connection-string show  -n ${{ github.event.inputs.iot-hub-name }}  --default --output tsv)
 
         # set them as GitHub ENV variables
         echo "Config-hubname=$hubname" >> $GITHUB_ENV
