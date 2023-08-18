@@ -1,4 +1,4 @@
-name: Azure Pareto ARM Deployment
+name: Azure Pareto Deployment
 on:
   workflow_dispatch:
     inputs:
@@ -11,7 +11,7 @@ on:
       resource_group:
         description: 'Resource Group Name - setup in shell script'
         required: true
-        default: 'pareto-aruba-rg'
+        default: 'dohoney-pareto-poc'
 
       azure_region:
         description: 'Azure Region'
@@ -96,8 +96,8 @@ jobs:
          # set them as GitHub ENV variables
          echo "Config-pubsubName=$pubsubName" >> $GITHUB_ENV
 
-         az webpubsub create --name $pubsubName --resource-group {{ github.event.inputs.resource_group }} --location ${{ github.event.inputs.azure_region }} --sku Free_F1
-         psendpoint=$(az webpubsub key show  --name $pubsubName--resource-group {{ github.event.inputs.resource_group }} --query primaryConnectionString --output tsv)
+         az webpubsub create --name $pubsubName --resource-group ${{ github.event.inputs.resource_group }} --location ${{ github.event.inputs.azure_region }} --sku Free_F1
+         psendpoint=$(az webpubsub key show  --name $pubsubName--resource-group ${{ github.event.inputs.resource_group }} --query primaryConnectionString --output tsv)
          echo "Config-psendpoint=$psendpoint" >> $GITHUB_ENV
       
     # Create Storage Account and remaining configuration variables
@@ -107,10 +107,10 @@ jobs:
          export saName="arubastorage$RANDOM"
          # set them as GitHub ENV variables
          echo "Config-saName=$saName" >> $GITHUB_ENV
-         az storage account az storage account create --name $saName --resource-group {{ github.event.inputs.resource_group }} --sku Standard_LRS --location ${{ github.event.inputs.azure_region }} 
+         az storage account az storage account create --name $saName --resource-group ${{ github.event.inputs.resource_group }}  --sku Standard_LRS --location ${{ github.event.inputs.azure_region }} 
       
-         storageConnection=$(az storage account show-connection-string --name $saName --resource-group {{ github.event.inputs.resource_group }} --output tsv)
-         sendAppSetting=$(az eventhubs eventhub authorization-rule keys list --resource-group {{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name ${{ env.HUB_RULE_NAME }} | jq  .primaryConnectionString)
+         storageConnection=$(az storage account show-connection-string --name $saName --resource-group  ${{ github.event.inputs.resource_group }} --output tsv)
+         sendAppSetting=$(az eventhubs eventhub authorization-rule keys list --resource-group  ${{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name ${{ env.HUB_RULE_NAME }} | jq  .primaryConnectionString)
          echo "Config-storageConnection=$storageConnection" >> $GITHUB_ENV
          echo "Config-sendAppSetting=$sendAppSetting" >> $GITHUB_ENV
          
