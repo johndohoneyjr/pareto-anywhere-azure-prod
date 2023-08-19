@@ -162,9 +162,9 @@ jobs:
       shell: bash
       run: |
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "AzureWebJobsStorage=${{ env.Config-storageConnection }}" 
-       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "EventHubConnectionString=${{ env.Config-hubendpoint }}""
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "EventHubConnectionString=${{ env.Config-hubendpoint }}"
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "EventHubSendAppSetting=${{ env.Config-sendAppSetting }}" 
-       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "WebPubSubConnectionString= ${{ env.Config-psendpoint }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "WebPubSubConnectionString=${{ env.Config-psendpoint }}"
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "iot_hub_name=${{ env.Config-hubname }}"
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "event_hub_name=${{ env.Config-eventhubName }}"
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
