@@ -23,6 +23,11 @@ Follow our step-by-step tutorial to deploy __Pareto Anywhere for Azure__:
 Learn "owl" about the __dynamb__ JSON data output:
 - [Developer's Cheatsheet](https://reelyactive.github.io/diy/cheatsheet/)
 
+Production Installation
+-----------------------
+```
+To-Do Add Github Actions Procedure
+```
 
 Installation
 ------------
