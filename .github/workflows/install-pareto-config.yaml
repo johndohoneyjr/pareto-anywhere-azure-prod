@@ -3,6 +3,11 @@ on:
   workflow_dispatch:
     inputs:
 
+      function-app-name:  
+        description: 'Function Name'
+        required: true
+        default: 'pareto-handler-function'
+
       iot-hub-name:
         description: 'IOT Hub Name'
         required: true
@@ -34,7 +39,7 @@ env:
   Config-saName: ''
   Config-storageConnection: ''
   Config-sendAppSetting: ''
-
+  SLOT: 'production'
 
 
 jobs:
@@ -113,46 +118,38 @@ jobs:
          sendAppSetting=$(az eventhubs eventhub authorization-rule keys list --resource-group  ${{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name ${{ env.HUB_RULE_NAME }} | jq  .primaryConnectionString)
          echo "Config-storageConnection=$storageConnection" >> $GITHUB_ENV
          echo "Config-sendAppSetting=$sendAppSetting" >> $GITHUB_ENV
-         
-         
-  build-and-deploy-functionapp:
-          runs-on: windows-latest
-          needs: build-and-deploy-infrastructure
-          steps:
-            - name: 'Checkout GitHub Action'
-              uses: actions/checkout@v2
       
-            - name: Setup Node ${{ env.NODE_VERSION }} Environment
-              uses: actions/setup-node@v1
-              with:
-                node-version: ${{ env.NODE_VERSION }}
+    - name: Setup Node ${{ env.NODE_VERSION }} Environment
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ env.NODE_VERSION }}
       
-            - name: 'Resolve Project Dependencies Using Npm'
-              shell: pwsh
-              run: |
-                pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-                npm install
-                popd
+    - name: 'Resolve Project Dependencies Using Npm'
+      shell: pwsh
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        npm install
+        popd
       
-            - name: 'Run Azure Functions Action'
-              uses: Azure/functions-action@v1
-              id: fa
-              with:
-                app-name: 'pareto-function-14874'
-                slot-name: 'production'
-                package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+       app-name: ${{ github.event.inputs.function-app-name }}
+       slot-name: ${{ env.SLOT }}
+       package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
 
-           # Create Function App Configuration
-            - name: Set FunctionApp Configuration
-              shell: bash
-              run: |
-                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "AzureWebJobsStorage=${{ env.Config-storageConnection }}" 
-                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "EventHubConnectionString=${{ env.Config-hubendpoint }}""
-                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "EventHubSendAppSetting=${{ env.Config-sendAppSetting }}" 
-                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "WebPubSubConnectionString= ${{ env.Config-psendpoint }} }}"
-                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "iot_hub_name=${{ env.Config-hubname }}"
-                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "event_hub_name=${{ env.Config-eventhubName }}"
-                az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
+    # Create Function App Configuration
+    - name: Set FunctionApp Configuration
+      shell: bash
+      run: |
+       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "AzureWebJobsStorage=${{ env.Config-storageConnection }}" 
+       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "EventHubConnectionString=${{ env.Config-hubendpoint }}""
+       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "EventHubSendAppSetting=${{ env.Config-sendAppSetting }}" 
+       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "WebPubSubConnectionString= ${{ env.Config-psendpoint }} }}"
+       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "iot_hub_name=${{ env.Config-hubname }}"
+       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "event_hub_name=${{ env.Config-eventhubName }}"
+       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
               
                 # Stitch together the resource file
                 cat <<EOF > ./local.settings.json
