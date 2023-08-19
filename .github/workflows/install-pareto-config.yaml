@@ -168,3 +168,5 @@ jobs:
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "iot_hub_name=${{ env.Config-hubname }}"
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "event_hub_name=${{ env.Config-eventhubName }}"
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
+       # Restart Function App with new configuration
+        az functionapp restart --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }}
