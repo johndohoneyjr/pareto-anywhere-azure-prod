@@ -118,6 +118,24 @@ jobs:
          sendAppSetting=$(az eventhubs eventhub authorization-rule keys list --resource-group  ${{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name ${{ env.HUB_RULE_NAME }} | jq  .primaryConnectionString)
          echo "Config-storageConnection=$storageConnection" >> $GITHUB_ENV
          echo "Config-sendAppSetting=$sendAppSetting" >> $GITHUB_ENV
+
+    # Create Pricing Plan and Function App
+    - name: Create Function App
+      shell: bash
+      run: |
+        premiumPlan="pareto-premium-plan-$RANDOM"
+        functionApp="pareto-function-$RANDOM"
+        skuPlan="EP1"
+        functionsVersion="4"
+        runtime="node"
+      
+        # Create a Premium plan
+        echo "Creating $premiumPlan"
+        az functionapp plan create --name $premiumPlan --resource-group ${{ github.event.inputs.resource_group }} --location ${{ github.event.inputs.azure_region }}  --sku $skuPlan
+      
+        # Create a Function App
+        echo "Creating $functionApp"
+        az functionapp create --name ${{ github.event.inputs.function-app-name }} --storage-account ${{ env.Config-saName }} --plan $premiumPlan --resource-group ${{ github.event.inputs.resource_group }} --runtime $runtime  --functions-version $functionsVersion
       
     - name: Setup Node ${{ env.NODE_VERSION }} Environment
       uses: actions/setup-node@v1
