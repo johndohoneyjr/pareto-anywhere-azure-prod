@@ -161,13 +161,13 @@ jobs:
     - name: Set FunctionApp Configuration
       shell: bash
       run: |
-       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "AzureWebJobsStorage=${{ env.Config-storageConnection }}" 
-       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "EventHubConnectionString=${{ env.Config-hubendpoint }}""
-       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "EventHubSendAppSetting=${{ env.Config-sendAppSetting }}" 
-       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "WebPubSubConnectionString= ${{ env.Config-psendpoint }} }}"
-       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "iot_hub_name=${{ env.Config-hubname }}"
-       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "event_hub_name=${{ env.Config-eventhubName }}"
-       az functionapp config appsettings set --name $functionApp --resource-group "iot-pareto" --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group "iot-pareto" --settings "AzureWebJobsStorage=${{ env.Config-storageConnection }}" 
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group "iot-pareto" --settings "EventHubConnectionString=${{ env.Config-hubendpoint }}""
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group "iot-pareto" --settings "EventHubSendAppSetting=${{ env.Config-sendAppSetting }}" 
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group "iot-pareto" --settings "WebPubSubConnectionString= ${{ env.Config-psendpoint }} }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group "iot-pareto" --settings "iot_hub_name=${{ env.Config-hubname }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group "iot-pareto" --settings "event_hub_name=${{ env.Config-eventhubName }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group "iot-pareto" --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
               
                 # Stitch together the resource file
                 cat <<EOF > ./local.settings.json
