@@ -1,0 +1,38 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "services": [
+        "azure"
+    ],
+   "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "dependencies": [
+            "dotnetcore",
+            "aspnetcore",
+            "csharp"
+        ]
+   },
+  "forwardPorts": [
+		8400
+   ],
+   "build": {
+    "commands": [
+        "dotnet tool install --global dotnet-sdk-latest"
+    ]
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers/features/terraform:1": {}
+  },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "GitHub.copilot"
+            ]
+        },
+        "codespaces": {
+            "openFiles": [
+                "codespace.md"
+            ]
+        }
+    }
+}
