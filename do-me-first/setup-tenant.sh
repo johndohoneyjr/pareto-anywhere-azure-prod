@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Environment Variables
-export SUBSCRIPTION_ID="9bb9f5c1-2e1a-4f65-a451-3e60c0a3f1cc"
+export SUBSCRIPTION_ID=""
 export RESOURCE_GROUP="dohoney-pareto-poc"
 export LOCATION="westus"
 export SERVICE_PRINCIPAL_NAME="pareto-serviceprincipal"
