@@ -1,3 +1,5 @@
+[![Azure Pareto Deployment](https://github.com/johndohoneyjr/pareto-anywhere-azure-prod/actions/workflows/install-pareto-config.yaml/badge.svg)](https://github.com/johndohoneyjr/pareto-anywhere-azure-prod/actions/workflows/install-pareto-config.yaml)
+
 Pareto Anywhere for Azure
 =========================
 
