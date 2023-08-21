@@ -90,6 +90,10 @@ echo "Logging into Github to set the service principal as a secret for Github ac
 gh auth login
 
 #
+echo "Setting the Service Principal Github Secret for Github CodeSpaces ..."
+gh secret set CLUSTER_SERVICE_PRINCIPAL -a codespaces -r $GITHUB_REPO < gh-secret.json
+
+#
 echo "Setting the Service Principal Github Secret for Github Actions automation..."
 gh secret set CLUSTER_SERVICE_PRINCIPAL -r $GITHUB_REPO < gh-secret.json
 
