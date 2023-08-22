@@ -26,9 +26,48 @@ Learn "owl" about the __dynamb__ JSON data output:
 Production Installation
 -----------------------
 
+# Codespaces
+Each client resource group has an associated CodeSpace.  CLI access to the resource group is possible using the Stored Service Principal
 
 ```
-To-Do Add Github Actions Procedure
+cid=$(echo $CLUSTER_SERVICE_PRINCIPAL | jq  -r .clientId)
+csecret=$(echo $CLUSTER_SERVICE_PRINCIPAL | jq  -r .clientSecret)
+tenant=$(echo $CLUSTER_SERVICE_PRINCIPAL | jq  -r .tenantId)
+```
+Next these attributes are used to login into the one of the multi-tenant Resource Groups
+
+
+```
+az login --service-principal -u $cid -p $csecret --tenant $tenant
+az group list
+[
+  {
+    "id": "/subscriptions/9bb9f5c1-2e1a-4f65-a451-3e60c0a3f1cc/resourceGroups/demo-pareto-poc",
+    "location": "westus",
+    "managedBy": null,
+    "name": "demo-pareto-poc",
+    "properties": {
+      "provisioningState": "Succeeded"
+    },
+    "tags": null,
+    "type": "Microsoft.Resources/resourceGroups"
+  }
+]
+```
+This shows the "walls"  of the configuration.  SO, all resoruces that were provisioned are accessable vis Azure CLI or Github Actions commands
+```
+ @johndohoneyjr ➜ /workspaces/pareto-anywhere-azure-prod (main) $ az resource list --resource-group demo-pareto-poc --output table
+Name                                  ResourceGroup    Location    Type                                                Status
+------------------------------------  ---------------  ----------  --------------------------------------------------  --------
+Failure Anomalies - pareto-hdlr-func  demo-pareto-poc  global      microsoft.alertsmanagement/smartDetectorAlertRules
+paretoIOTHub2                         demo-pareto-poc  westus      Microsoft.Devices/IotHubs
+aruba14958                            demo-pareto-poc  westus      Microsoft.EventHub/namespaces
+Application Insights Smart Detection  demo-pareto-poc  global      microsoft.insights/actiongroups
+pareto-hdlr-func                      demo-pareto-poc  westus      Microsoft.Insights/components
+pubsub16168                           demo-pareto-poc  westus      Microsoft.SignalRService/WebPubSub
+arubastorage4591                      demo-pareto-poc  westus      Microsoft.Storage/storageAccounts
+pareto-premium-plan-5703              demo-pareto-poc  westus      Microsoft.Web/serverFarms
+pareto-hdlr-func                      demo-pareto-poc  westus      Microsoft.Web/sites
 ```
 
 Installation
