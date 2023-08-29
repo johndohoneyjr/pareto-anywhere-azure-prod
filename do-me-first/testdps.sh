@@ -28,3 +28,4 @@ dpsIdScope=$(az iot dps show --name $dpsName --resource-group $resourceGroup --q
 # Display the primary key connection string and ID Scope
 echo "IoT Hub primary key connection string: $hubConnectionString"
 echo "DPS ID Scope: $dpsIdScope"
+az iot dps policy show --dps-name $dpsName --resource-group $resourceGroup --policy-name provisioningserviceowner
