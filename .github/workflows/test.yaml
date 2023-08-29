@@ -15,8 +15,8 @@ jobs:
       - id: step2
         run: echo "test=world" >> "$GITHUB_OUTPUT"
       - env:
-          OUTPUT1: ${{needs.job1.outputs.output1}}
-          OUTPUT2: ${{needs.job1.outputs.output2}}
+          OUTPUT1: ${{needs.outputs.output1}}
+          OUTPUT2: ${{needs.outputs.output2}}
         run: echo "$OUTPUT1 $OUTPUT2"
   job2:
     runs-on: ubuntu-latest
