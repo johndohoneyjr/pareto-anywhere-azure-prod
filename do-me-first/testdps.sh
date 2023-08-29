@@ -1,7 +1,5 @@
 #! /bin/bash
 
-#!/bin/bash
-
 # Set variables for the new IoT Hub, DPS, and enrollment group
 resourceGroup="<ResourceGroupName>"
 location="<Location>"
