@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # Environment Variables
-export SUBSCRIPTION_ID="9bb9f5c1-2e1a-4f65-a451-3e60c0a3f1cc"
+export SUBSCRIPTION_ID=""
 export RESOURCE_GROUP="dohoney2-pareto-poc"
 export LOCATION="westus"
 export SERVICE_PRINCIPAL_NAME="pareto-serviceprincipal"
 export GITHUB_REPO="https://github.com/johndohoneyjr/pareto-anywhere-azure-prod"
-
+GITHUB_TOKEN=""
 
 # Make sure github cli is installed -- for adding the secret to GH Actions
 # https://github.com/cli/cli
@@ -68,7 +68,7 @@ az upgrade
 # Login to Owner account
 echo ""
 echo "Logging you into your account ..."
-az login
+az login  --use-device-code
 
 # Create the Resource Group
 echo "Creating resource group - $RESOURCE_GROUP"
