@@ -1,11 +1,11 @@
 #! /bin/bash
 
 # Set variables for the new IoT Hub, DPS, and enrollment group
-resourceGroup="<ResourceGroupName>"
-location="<Location>"
-hubName="<IoTHubName>"
-dpsName="<DPSName>"
-enrollmentGroupName="<EnrollmentGroupName>"
+resourceGroup="test-dps-settings"
+location="westus2"
+hubName="dohoney-west-hub"
+dpsName="dohoney-west-dps"
+enrollmentGroupName="dohoney-west-eg"
 
 # Create a resource group
 az group create --name $resourceGroup --location $location
