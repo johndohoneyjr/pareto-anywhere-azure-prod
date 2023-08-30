@@ -192,5 +192,9 @@ jobs:
       shell: bash
       run: |
         az iot dps enrollment-group create --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --enrollment-id ${{ env.DEVICE_NAME }} --attestation-type symmetrickey --device-id ${{ env.DEVICE_NAME }}
-        az iot dps enrollment-group show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --enrollment-id ${{ env.DEVICE_NAME }} --query attestation.symmetricKey.primaryKey
+        az iot dps enrollment-group show   --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --enrollment-id ${{ env.DEVICE_NAME }} --query attestation.symmetricKey.primaryKey
 
+    - name: 'Print Connection Variables'
+      run: echo "Connection Variables: $(az iot dps policy show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --policy-name provisioningserviceowner)"
+      run: echo "DPS ID Scope: $(az iot dps show --name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --query properties.idScope -o tsv)"
+      run: echo "DPS Primary Key: $(az iot dps policy show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --policy-name provisioningserviceowner --query primaryKey )"
