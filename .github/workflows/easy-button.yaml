@@ -79,7 +79,7 @@ jobs:
       shell: bash
       run: |
         # create IOT Hub
-        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ github.event.inputs.resource_group }} --sku F1 --location ${{ github.event.inputs.azure_region }}
+        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ github.event.inputs.resource_group }} --sku F1 --partition-count 2 --location ${{ github.event.inputs.azure_region }}
         az iot hub device-identity create --device-id ${{ env.DEVICE_NAME }} --hub-name ${{ github.event.inputs.iot-hub-name }}
 
         hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
