@@ -53,12 +53,23 @@ jobs:
           echo please run ./do-me-first/simple-setup.sh to set this value necessary for proper provisioning of yout IOT Environment in your selected Azure Region;
           exit 1;
         fi
-        
+
+    - name: check if SUBSCRIPTION_ID exists
+      run: |
+        if [ `echo ${{secrets.SUBSCRIPTION_ID}} | wc -c` -lt 2 ]; then
+          echo the secret "SUBSCRIPTION_ID" has not been made;
+          echo please run ./do-me-first/simple-setup.sh to set this value necessary for proper provisioning of yout IOT Environment in your selected Azure Subscription;
+          exit 1;
+        fi
+
     - uses: actions/checkout@main
 
     - uses: azure/login@v1
       with:
         creds: ${{ secrets.CLUSTER_SERVICE_PRINCIPAL }}
+    
+    - name: Set default subscription
+      run: az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
 
     - name: Install az cli 
       uses: ./.github/actions/install-az-cli
