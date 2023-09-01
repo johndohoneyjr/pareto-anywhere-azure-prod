@@ -1,4 +1,4 @@
-name: Azure Pareto Deployment
+name: Easy Button Deployment
 on:
   workflow_dispatch:
     inputs:
