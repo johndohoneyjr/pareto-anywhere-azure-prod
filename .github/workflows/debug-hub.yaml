@@ -74,6 +74,13 @@ jobs:
     - name: Install az cli 
       uses: ./.github/actions/install-az-cli
 
+    # Create IOT Hub
+    - name: Create IOT Hub
+      shell: bash
+      run: |
+        # create IOT Hub
+        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --partition-count 2 --location ${{ secrets.AZURE_REGION}} 
+        
     # Create Event Hub and Namespace
     - name: Create Event Hub
       shell: bash
@@ -91,11 +98,3 @@ jobs:
        
         # Added Listen and Send as rights
         az eventhubs eventhub authorization-rule create --authorization-rule-name ${{ env.HUB_RULE_NAME }} --eventhub-name $eventhubName --namespace-name $namespaceName --resource-group ${{ secrets.RESOURCE_GROUP}} --rights Listen Send
-
-    # Create IOT Hub
-    - name: Create IOT Hub
-      shell: bash
-      run: |
-        # create IOT Hub
-        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --partition-count 2 --location ${{ secrets.AZURE_REGION}} 
-
