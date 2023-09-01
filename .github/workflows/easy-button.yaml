@@ -16,12 +16,12 @@ on:
       resource_group:
         description: 'Resource Group Name - setup in shell script'
         required: true
-        default:  ${{ secrets.RESOURCE_GROUP}}
+        default:  '${{ secrets.RESOURCE_GROUP}}'
 
       azure_region:
         description: 'Azure Region'
         required: true
-        default:  ${{ secrets.AZURE_REGION}} }}
+        default:  '${{ secrets.AZURE_REGION}} }}'
 
 # Environment Variables
 env:
