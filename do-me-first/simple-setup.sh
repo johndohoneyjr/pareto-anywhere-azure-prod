@@ -74,7 +74,7 @@ echo "Creating resource group - $RESOURCE_GROUP"
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
 echo "Creating Resource Group Scoped Service Principal..."
-az ad sp create-for-rbac --name $SERVICE_PRINCIPAL_NAME --role Contributor --scopes /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP  --sdk-auth > gh-secret.json
+az ad sp create-for-rbac --name $SERVICE_PRINCIPAL_NAME --role Contributor --scopes /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP  --sdk-auth
 
 # Authenticate to Github 
 

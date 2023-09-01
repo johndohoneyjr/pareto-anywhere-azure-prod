@@ -1,4 +1,4 @@
-name: Azure Pareto Deployment
+name: Simple Azure Pareto Deployment
 on:
   workflow_dispatch:
     inputs:
@@ -86,7 +86,7 @@ jobs:
       shell: bash
       run: |
         # create IOT Hub
-        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --location ${{ secrets.AZURE_REGION}} 
+        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --partition-count 2 --location ${{ secrets.AZURE_REGION}} 
         az iot hub device-identity create --device-id ${{ env.DEVICE_NAME }} --hub-name ${{ github.event.inputs.iot-hub-name }}
 
         hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
