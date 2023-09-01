@@ -170,3 +170,34 @@ jobs:
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
        # Restart Function App with new configuration
        az functionapp restart --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }}
+
+    # Create Device Provisioning Service
+    - name: Create Device Provisioning Service
+      shell: bash
+      run: |
+        dpsName="aruba-dps-$RANDOM"
+        echo "Config-dpsName=$dpsName" >> $GITHUB_ENV
+        az iot dps create --name $dpsName --resource-group ${{ github.event.inputs.resource_group }} --location ${{ github.event.inputs.azure_region }} --sku S1 --unit 1
+        az iot dps linked-hub create --dps-name $dpsName --resource-group ${{ github.event.inputs.resource_group }} --connection-string ${{ env.Config-hubendpoint }} --location ${{ github.event.inputs.azure_region }}
+
+    # Create Device Provisioning Service Enrollment
+    - name: Create Device Provisioning Service Enrollment
+      shell: bash
+      run: |
+        az iot dps enrollment create --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --enrollment-id ${{ env.DEVICE_NAME }} --attestation-type symmetrickey --device-id ${{ env.DEVICE_NAME }}
+        az iot dps enrollment show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --enrollment-id ${{ env.DEVICE_NAME }} --query attestation.symmetricKey.primaryKey
+
+    # Create Device Provisioning Service Enrollment Group
+    - name: Create Device Provisioning Service Enrollment Group
+      shell: bash
+      run: |
+        az iot dps enrollment-group create --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --enrollment-id ${{ env.DEVICE_NAME }} --attestation-type symmetrickey --device-id ${{ env.DEVICE_NAME }}
+        az iot dps enrollment-group show   --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --enrollment-id ${{ env.DEVICE_NAME }} --query attestation.symmetricKey.primaryKey
+
+    - name: Print Device Connection data
+      shell: bash
+      run: |
+        echo "DPS Primary Key: $(az iot dps policy show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --policy-name provisioningserviceowner --query primaryKey )"
+        echo "Connection Variables: $(az iot dps policy show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --policy-name provisioningserviceowner )"
+        echo "DPS ID Scope: $(az iot dps show --name ${{ env.Config-dpsName }} --resource-group ${{ github.event.inputs.resource_group }} --query properties.idScope -o tsv)"
+ 
