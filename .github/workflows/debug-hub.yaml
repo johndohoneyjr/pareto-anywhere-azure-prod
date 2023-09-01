@@ -1,0 +1,112 @@
+name: Simple Azure Pareto Deployment Debug
+on:
+  workflow_dispatch:
+    inputs:
+
+      function-app-name:  
+        description: 'Function Name'
+        required: true
+        default: 'pareto-handler-function'
+
+      iot-hub-name:
+        description: 'IOT Hub Name'
+        required: true
+        default: 'paretoIOTHub'
+
+
+# Environment Variables
+env:
+  HUB_RULE_NAME: "aruba-hub-rule"
+  AZURE_FUNCTIONAPP_NAME: 'pareto-function-apps'  
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'    
+  NODE_VERSION: '16.x' 
+  DEVICE_NAME: 'iot-pareto-device'
+  Config-hubname: ''
+  Config-hubendpoint: ''
+  Config-eventhubName: ''
+  Config-namespaceName: ''
+  Config-pubsubName: ''
+  Config-psendpoint: ''
+  Config-saName: ''
+  Config-storageConnection: ''
+  Config-sendAppSetting: ''
+  SLOT: 'production'
+
+
+jobs:
+  build-and-deploy-infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: check if RESOURCE_GROUP exists
+      run: |
+        if [ `echo ${{secrets.RESOURCE_GROUP}} | wc -c` -lt 2 ]; then
+          echo the secret "RESOURCE_GROUP" has not been made;
+          echo please run ./do-me-first/simple-setup.sh to set this value necessary for proper provisioning of yout IOT Environment;
+          exit 1;
+        fi
+
+    - name: check if AZURE_REGION exists
+      run: |
+        if [ `echo ${{secrets.AZURE_REGION}} | wc -c` -lt 2 ]; then
+          echo the secret "AZURE_REGION" has not been made;
+          echo please run ./do-me-first/simple-setup.sh to set this value necessary for proper provisioning of yout IOT Environment in your selected Azure Region;
+          exit 1;
+        fi
+
+    - name: check if SUBSCRIPTION_ID exists
+      run: |
+        if [ `echo ${{secrets.SUBSCRIPTION_ID}} | wc -c` -lt 2 ]; then
+          echo the secret "SUBSCRIPTION_ID" has not been made;
+          echo please run ./do-me-first/simple-setup.sh to set this value necessary for proper provisioning of yout IOT Environment in your selected Azure Subscription;
+          exit 1;
+        fi
+
+    - uses: actions/checkout@main
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.CLUSTER_SERVICE_PRINCIPAL }}
+    
+    - name: Set default subscription
+      run: az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
+
+    - name: Install az cli 
+      uses: ./.github/actions/install-az-cli
+
+    # Create Event Hub and Namespace
+    - name: Create Event Hub
+      shell: bash
+      run: |
+        # define variables for configuration to set for Azure Functions
+        namespaceName="aruba$RANDOM"
+        eventhubName="arubahub$RANDOM"
+         # set them as GitHub ENV variables
+        echo "Config-namespaceName=$namespaceName" >> $GITHUB_ENV
+        echo "Config-eventhubName=$eventhubName" >> $GITHUB_ENV
+        echo "Event Hubname: ${{ env.Config-eventhubName }} using Namespace: ${{ env.Config-namespaceName }}"
+
+        az eventhubs namespace create --name $namespaceName --resource-group ${{ secrets.RESOURCE_GROUP}}  -l ${{ secrets.AZURE_REGION}} 
+        az eventhubs eventhub create  --name $eventhubName  --resource-group ${{ secrets.RESOURCE_GROUP}} --namespace-name $namespaceName
+       
+        # Added Listen and Send as rights
+        az eventhubs eventhub authorization-rule create --authorization-rule-name ${{ env.HUB_RULE_NAME }} --eventhub-name $eventhubName --namespace-name $namespaceName --resource-group ${{ secrets.RESOURCE_GROUP}} --rights Listen Send
+
+    # Create IOT Hub
+    - name: Create IOT Hub
+      shell: bash
+      run: |
+        # create IOT Hub
+        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --partition-count 2 --location ${{ secrets.AZURE_REGION}} 
+        #az iot hub device-identity create --device-id ${{ env.DEVICE_NAME }} --hub-name ${{ github.event.inputs.iot-hub-name }}
+
+        hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
+        # Event Hub-compatible endpoint
+        export hubendpoint=$(az iot hub connection-string show  -n $${{ github.event.inputs.iot-hub-name }}  --default --output tsv)
+
+        # set them as GitHub ENV variables
+        echo "Config-hubname=$hubname" >> $GITHUB_ENV
+        echo "Config-hubendpoint=$hubendpoint" >> $GITHUB_ENV
+
+        # retrieve these GitHub ENV variables
+        echo "Hubname: ${{ env.Config-hubname }} using Connection String: ${{ env.Config-hubendpoint }}"
