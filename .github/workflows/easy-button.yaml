@@ -38,14 +38,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: check if MY_SECRET exists
+    - name: check if RESOURCE_GROUP exists
       run: |
-        if [ `echo ${{secrets.MY_SECRET}} | wc -c` -lt 2 ]; then
-          echo the secret "MY_SECRET" has not been made;
-          echo please go to "settings > secrets > actions" to create it;
+        if [ `echo ${{secrets.RESOURCE_GROUP}} | wc -c` -lt 2 ]; then
+          echo the secret "RESOURCE_GROUP" has not been made;
+          echo please run ./do-me-first/simple-setup.sh to set this value necessary for proper provisioning of yout IOT Environment;
           exit 1;
         fi
 
+    - name: check if AZURE_REGION exists
+      run: |
+        if [ `echo ${{secrets.AZURE_REGION}} | wc -c` -lt 2 ]; then
+          echo the secret "AZURE_REGION" has not been made;
+          echo please run ./do-me-first/simple-setup.sh to set this value necessary for proper provisioning of yout IOT Environment in your selected Azure Region;
+          exit 1;
+        fi
+        
     - uses: actions/checkout@main
 
     - uses: azure/login@v1
