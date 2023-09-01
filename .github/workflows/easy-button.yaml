@@ -13,15 +13,6 @@ on:
         required: true
         default: 'paretoIOTHub'
 
-      resource_group:
-        description: 'Resource Group Name - setup in shell script'
-        required: true
-        default:  '${{ secrets.RESOURCE_GROUP}}'
-
-      azure_region:
-        description: 'Azure Region'
-        required: true
-        default:  '${{ secrets.AZURE_REGION}} }}'
 
 # Environment Variables
 env:
@@ -46,6 +37,15 @@ jobs:
   build-and-deploy-infrastructure:
     runs-on: ubuntu-latest
     steps:
+
+    - name: check if MY_SECRET exists
+      run: |
+        if [ `echo ${{secrets.MY_SECRET}} | wc -c` -lt 2 ]; then
+          echo the secret "MY_SECRET" has not been made;
+          echo please go to "settings > secrets > actions" to create it;
+          exit 1;
+        fi
+
     - uses: actions/checkout@main
 
     - uses: azure/login@v1
@@ -67,18 +67,18 @@ jobs:
         echo "Config-eventhubName=$eventhubName" >> $GITHUB_ENV
         echo "Event Hubname: ${{ env.Config-eventhubName }} using Namespace: ${{ env.Config-namespaceName }}"
 
-        az eventhubs namespace create --name $namespaceName --resource-group ${{ github.event.inputs.resource_group }}  -l ${{ github.event.inputs.azure_region }}
-        az eventhubs eventhub create  --name $eventhubName  --resource-group ${{ github.event.inputs.resource_group }} --namespace-name $namespaceName
+        az eventhubs namespace create --name $namespaceName --resource-group ${{ secrets.RESOURCE_GROUP}}  -l ${{ secrets.AZURE_REGION}} 
+        az eventhubs eventhub create  --name $eventhubName  --resource-group ${{ secrets.RESOURCE_GROUP}} --namespace-name $namespaceName
        
         # Added Listen and Send as rights
-        az eventhubs eventhub authorization-rule create --authorization-rule-name ${{ env.HUB_RULE_NAME }} --eventhub-name $eventhubName --namespace-name $namespaceName --resource-group ${{ github.event.inputs.resource_group }} --rights Listen Send
+        az eventhubs eventhub authorization-rule create --authorization-rule-name ${{ env.HUB_RULE_NAME }} --eventhub-name $eventhubName --namespace-name $namespaceName --resource-group ${{ secrets.RESOURCE_GROUP}} --rights Listen Send
 
     # Create IOT Hub
     - name: Create IOT Hub
       shell: bash
       run: |
         # create IOT Hub
-        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ github.event.inputs.resource_group }} --sku F1 --location ${{ github.event.inputs.azure_region }}
+        az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --location ${{ secrets.AZURE_REGION}} 
         az iot hub device-identity create --device-id ${{ env.DEVICE_NAME }} --hub-name ${{ github.event.inputs.iot-hub-name }}
 
         hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
@@ -100,8 +100,8 @@ jobs:
          # set them as GitHub ENV variables
          echo "Config-pubsubName=$pubsubName" >> $GITHUB_ENV
 
-         az webpubsub create --name $pubsubName --resource-group ${{ github.event.inputs.resource_group }} --location ${{ github.event.inputs.azure_region }} --sku Free_F1
-         psendpoint=$(az webpubsub key show  --name $pubsubName --resource-group ${{ github.event.inputs.resource_group }} --query primaryConnectionString --output tsv)
+         az webpubsub create --name $pubsubName --resource-group ${{ secrets.RESOURCE_GROUP}} --location ${{ secrets.AZURE_REGION}}  --sku Free_F1
+         psendpoint=$(az webpubsub key show  --name $pubsubName --resource-group ${{ secrets.RESOURCE_GROUP}} --query primaryConnectionString --output tsv)
          echo "Config-psendpoint=$psendpoint" >> $GITHUB_ENV
       
     # Create Storage Account and remaining configuration variables
@@ -111,10 +111,10 @@ jobs:
          export saName="arubastorage$RANDOM"
          # set them as GitHub ENV variables
          echo "Config-saName=$saName" >> $GITHUB_ENV
-         az storage account create --name $saName --resource-group ${{ github.event.inputs.resource_group }}  --sku Standard_LRS --location ${{ github.event.inputs.azure_region }} 
+         az storage account create --name $saName --resource-group ${{ secrets.RESOURCE_GROUP}}  --sku Standard_LRS --location ${{ secrets.AZURE_REGION}}  
       
-         storageConnection=$(az storage account show-connection-string --name $saName --resource-group  ${{ github.event.inputs.resource_group }} --output tsv)
-         sendAppSetting=$(az eventhubs eventhub authorization-rule keys list --resource-group  ${{ github.event.inputs.resource_group }} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name ${{ env.HUB_RULE_NAME }} | jq  .primaryConnectionString)
+         storageConnection=$(az storage account show-connection-string --name $saName --resource-group  ${{ secrets.RESOURCE_GROUP}} --output tsv)
+         sendAppSetting=$(az eventhubs eventhub authorization-rule keys list --resource-group  ${{ secrets.RESOURCE_GROUP}} --namespace-name ${{ env.Config-namespaceName }} --eventhub-name ${{ env.Config-eventhubName }} --name ${{ env.HUB_RULE_NAME }} | jq  .primaryConnectionString)
          echo "Config-storageConnection=$storageConnection" >> $GITHUB_ENV
          echo "Config-sendAppSetting=$sendAppSetting" >> $GITHUB_ENV
 
@@ -130,11 +130,11 @@ jobs:
       
         # Create a Premium plan
         echo "Creating $premiumPlan"
-        az functionapp plan create --name $premiumPlan --resource-group ${{ github.event.inputs.resource_group }} --location ${{ github.event.inputs.azure_region }}  --sku $skuPlan
+        az functionapp plan create --name $premiumPlan --resource-group ${{ secrets.RESOURCE_GROUP}} --location ${{ secrets.AZURE_REGION}}   --sku $skuPlan
       
         # Create a Function App
         echo "Creating $functionApp"
-        az functionapp create --name ${{ github.event.inputs.function-app-name }} --storage-account ${{ env.Config-saName }} --plan $premiumPlan --resource-group ${{ github.event.inputs.resource_group }} --runtime $runtime  --functions-version $functionsVersion
+        az functionapp create --name ${{ github.event.inputs.function-app-name }} --storage-account ${{ env.Config-saName }} --plan $premiumPlan --resource-group ${{ secrets.RESOURCE_GROUP}} --runtime $runtime  --functions-version $functionsVersion
       
     - name: Setup Node ${{ env.NODE_VERSION }} Environment
       uses: actions/setup-node@v1
@@ -160,12 +160,12 @@ jobs:
     - name: Set FunctionApp Configuration
       shell: bash
       run: |
-       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "AzureWebJobsStorage=${{ env.Config-storageConnection }}" 
-       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "EventHubConnectionString=${{ env.Config-hubendpoint }}"
-       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "EventHubSendAppSetting=${{ env.Config-sendAppSetting }}" 
-       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "WebPubSubConnectionString=${{ env.Config-psendpoint }}"
-       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "iot_hub_name=${{ env.Config-hubname }}"
-       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "event_hub_name=${{ env.Config-eventhubName }}"
-       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }} --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --settings "AzureWebJobsStorage=${{ env.Config-storageConnection }}" 
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --settings "EventHubConnectionString=${{ env.Config-hubendpoint }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --settings "EventHubSendAppSetting=${{ env.Config-sendAppSetting }}" 
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --settings "WebPubSubConnectionString=${{ env.Config-psendpoint }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --settings "iot_hub_name=${{ env.Config-hubname }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --settings "event_hub_name=${{ env.Config-eventhubName }}"
+       az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
        # Restart Function App with new configuration
-       az functionapp restart --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ github.event.inputs.resource_group }}
+       az functionapp restart --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}}
