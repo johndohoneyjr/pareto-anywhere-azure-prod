@@ -16,12 +16,12 @@ on:
       resource_group:
         description: 'Resource Group Name - setup in shell script'
         required: true
-        default: 'dohoney-pareto-poc'
+        default:  ${{ secrets.RESOURCE_GROUP}}
 
       azure_region:
         description: 'Azure Region'
         required: true
-        default: 'westus'
+        default:  ${{ secrets.AZURE_REGION}} }}
 
 # Environment Variables
 env:
@@ -46,6 +46,11 @@ jobs:
   build-and-deploy-infrastructure:
     runs-on: ubuntu-latest
     steps:
+     - name: "check is MY_SECRET exists"
+        env: 
+            rg: ${{ secrets.MY_SECRET }}
+        if: ${{ env.rg == '' }}
+        run: 'echo "echo the secret \"MY_SECRET\" has not been made; echo please go to \"settings \> secrets \> actions\" to create it"
 
     - uses: actions/checkout@main
 

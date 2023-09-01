@@ -107,3 +107,7 @@ gh secret set SUBSCRIPTION_ID -a codespaces -r $GITHUB_REPO --body "$SUBSCRIPTIO
 echo "Setting Resource Group Name as Github Secret for Github Actions automation..."
 gh secret set RESOURCE_GROUP -r $GITHUB_REPO --body "$RESOURCE_GROUP"
 gh secret set RESOURCE_GROUP -a codespaces -r $GITHUB_REPO --body "$RESOURCE_GROUP"
+
+echo "Setting Azufre Region Location Name as Github Secret for Github Actions automation..."
+gh secret set AZURE_REGION -r $GITHUB_REPO --body "$LOCATION"
+gh secret set AZURE_REGION -a codespaces -r $GITHUB_REPO --body "$LOCATION"
