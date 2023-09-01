@@ -98,15 +98,4 @@ jobs:
       run: |
         # create IOT Hub
         az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --partition-count 2 --location ${{ secrets.AZURE_REGION}} 
-        #az iot hub device-identity create --device-id ${{ env.DEVICE_NAME }} --hub-name ${{ github.event.inputs.iot-hub-name }}
 
-        hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
-        # Event Hub-compatible endpoint
-        export hubendpoint=$(az iot hub connection-string show  -n $${{ github.event.inputs.iot-hub-name }}  --default --output tsv)
-
-        # set them as GitHub ENV variables
-        echo "Config-hubname=$hubname" >> $GITHUB_ENV
-        echo "Config-hubendpoint=$hubendpoint" >> $GITHUB_ENV
-
-        # retrieve these GitHub ENV variables
-        echo "Hubname: ${{ env.Config-hubname }} using Connection String: ${{ env.Config-hubendpoint }}"
