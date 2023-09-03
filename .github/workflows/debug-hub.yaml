@@ -78,32 +78,13 @@ jobs:
     - name: Create IOT Hub
       shell: bash
       run: |
-        az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
         # create IOT Hub
         az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --partition-count 2 --location ${{ secrets.AZURE_REGION}} 
-        #
-        # Adding a Sleep, as sometimes the following commands can not find the Hub
-        sleep 60
-        az iot hub show --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}}
-        az iot hub device-identity create --device-id ${{env.DEVICE_NAME}} --hub-name ${{ github.event.inputs.iot-hub-name }}
-        az iot hub device-identity connection-string show --device-id ${{env.DEVICE_NAME}} --hub-name ${{ github.event.inputs.iot-hub-name }}
-
-        hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
-        # Event Hub-compatible endpoint
-        export hubendpoint=$(az iot hub connection-string show  -n ${{ github.event.inputs.iot-hub-name }}  --default --output tsv)
-
-        # set them as GitHub ENV variables
-        echo "Config-hubname=$hubname" >> $GITHUB_ENV
-        echo "Config-hubendpoint=$hubendpoint" >> $GITHUB_ENV
-
-        # retrieve these GitHub ENV variables
-        echo "Hubname: ${{ env.Config-hubname }} using Connection String: ${{ env.Config-hubendpoint }}"
         
     # Create Event Hub and Namespace
     - name: Create Event Hub
       shell: bash
       run: |
-        az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
         # define variables for configuration to set for Azure Functions
         namespaceName="aruba$RANDOM"
         eventhubName="arubahub$RANDOM"
@@ -122,7 +103,6 @@ jobs:
     - name: Create WebPubSub
       shell: bash
       run: |
-         az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
          export pubsubName="pubsub$RANDOM"
          # set them as GitHub ENV variables
          echo "Config-pubsubName=$pubsubName" >> $GITHUB_ENV
@@ -134,7 +114,6 @@ jobs:
     - name: Create Storage Account
       shell: bash
       run: |
-         az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
          export saName="arubastorage$RANDOM"
          # set them as GitHub ENV variables
          echo "Config-saName=$saName" >> $GITHUB_ENV
@@ -184,6 +163,22 @@ jobs:
        slot-name: ${{ env.SLOT }}
        package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
 
+    # Set IOT Hub Environment
+    - name: IOT Hub Environment
+      shell: bash
+      run: |
+        az iot hub device-identity create --device-id ${{env.DEVICE_NAME}} --hub-name ${{ github.event.inputs.iot-hub-name }}
+        hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
+        # Event Hub-compatible endpoint
+        export hubendpoint=$(az iot hub connection-string show  -n ${{ github.event.inputs.iot-hub-name }}  --default --output tsv)
+
+        # set them as GitHub ENV variables
+        echo "Config-hubname=$hubname" >> $GITHUB_ENV
+        echo "Config-hubendpoint=$hubendpoint" >> $GITHUB_ENV
+
+        # retrieve these GitHub ENV variables
+        echo "Hubname: ${{ env.Config-hubname }} using Connection String: ${{ env.Config-hubendpoint }}"
+    
     # Create Function App Configuration
     - name: Set FunctionApp Configuration
       shell: bash
