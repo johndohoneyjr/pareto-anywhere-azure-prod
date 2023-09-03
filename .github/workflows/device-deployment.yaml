@@ -21,29 +21,33 @@ jobs:
     - name: Install az cli 
       uses: ./.github/actions/install-az-cli
 
+    - name: Set default subscription
+      run: az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
+
     # Create Device in Hub
     - name: Create Device Provisioning Service
       shell: bash
       run: |
-        az iot hub device-identity create --device-id ${{ vars.IOT_DEVICE}} --hub-name ${{ vars.IOT_HUB}} 
+        az iot hub list --resource-group ${{ secrets.RESOURCE_GROUP}}
+        az iot hub device-identity create -d ${{ vars.IOT_DEVICE}} -n ${{ vars.IOT_HUB}} -g ${{ secrets.RESOURCE_GROUP}}
 
     # Create Device Provisioning Service Enrollment
     - name: Create Device Provisioning Service Enrollment
       shell: bash
       run: |
-        az iot dps enrollment create --dps-name ${{ env.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ env.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ env.IOT_DEVICE}} 
-        az iot dps enrollment show --dps-name ${{ env.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ env.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
+        az iot dps enrollment create --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ vars.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ vars.IOT_DEVICE}} 
+        az iot dps enrollment show --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ vars.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
 
     # Create Device Provisioning Service Enrollment Group
     - name: Create Device Provisioning Service Enrollment Group
       shell: bash
       run: |
-        az iot dps enrollment-group create --dps-name ${{ env.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ env.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ env.IOT_DEVICE}} 
-        az iot dps enrollment-group show   --dps-name ${{ env.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ env.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
+        az iot dps enrollment-group create --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ vars.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ vars.IOT_DEVICE}} 
+        az iot dps enrollment-group show   --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ vars.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
 
     - name: Print Device Connection data
       shell: bash
       run: |
-        echo "DPS Primary Key: $(az iot dps policy show --dps-name ${{ env.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --policy-name provisioningserviceowner --query primaryKey )"
-        echo "Connection Variables: $(az iot dps policy show --dps-name ${{ env.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --policy-name provisioningserviceowner )"
-        echo "DPS ID Scope: $(az iot dps show --name ${{ env.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --query properties.idScope -o tsv)"
+        echo "DPS Primary Key: $(az iot dps policy show --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --policy-name provisioningserviceowner --query primaryKey )"
+        echo "Connection Variables: $(az iot dps policy show --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --policy-name provisioningserviceowner )"
+        echo "DPS ID Scope: $(az iot dps show --name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --query properties.idScope -o tsv)"
