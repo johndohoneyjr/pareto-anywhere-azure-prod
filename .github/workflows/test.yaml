@@ -1,0 +1,4 @@
+ gh variable set IOT_HUB -bsamsHub
+  gh variable set IOT_HUB_CONNECTION -b$(az iot hub connection-string show  -n samsHub  --default --output tsv)
+  gh variable set IOT_DEVICE -biot-pareto-device
+  gh variable set DPS_NAME -b"ParetoDeployment"
