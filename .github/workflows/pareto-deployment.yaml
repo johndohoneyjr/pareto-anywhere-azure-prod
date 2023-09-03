@@ -1,4 +1,4 @@
-name: Simple Azure Pareto Deployment Debug
+name: Azure Pareto Deployment
 on:
   workflow_dispatch:
     inputs:
