@@ -191,7 +191,8 @@ jobs:
     - name: Set variable for DPS Configuration
       run: |
           gh variable set IOT_HUB -b${{ env.Config-hubname }}
-          gh variable set IOT_HUB_CONNECTION -b${{ env.Config-hubendpoint }}
+          gh variable set IOT_HUB_CONNECTION -b$(az iot hub connection-string show  -n ${{ github.event.inputs.iot-hub-name }}  --default --output tsv)
           gh variable set IOT_DEVICE -b${{ env.DEVICE_NAME }}
+          gh variable set DPS_NAME -b"ParetoDeployment"
       env:
         GITHUB_TOKEN: ${{ secrets.PAT }}
