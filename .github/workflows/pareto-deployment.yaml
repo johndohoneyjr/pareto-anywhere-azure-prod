@@ -21,6 +21,7 @@ env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'    
   NODE_VERSION: '16.x' 
   DEVICE_NAME: 'iot-pareto-device'
+  DPS_DEPLOYMENT: "ParetoDeployment"
   Config-hubname: ''
   Config-hubendpoint: ''
   Config-eventhubName: ''
@@ -190,9 +191,10 @@ jobs:
 
     - name: Set variable for DPS Configuration
       run: |
-          gh variable set IOT_HUB -b${{ env.Config-hubname }}
-          gh variable set IOT_HUB_CONNECTION -b$(az iot hub connection-string show  -n ${{ github.event.inputs.iot-hub-name }}  --default --output tsv)
-          gh variable set IOT_DEVICE -b${{ env.DEVICE_NAME }}
-          gh variable set DPS_NAME -b"ParetoDeployment"
+          gh variable set IOT_HUB --body ${{ env.Config-hubname }}
+          gh variable set IOT_DEVICE --body ${{ env.DEVICE_NAME }}
+          gh variable set DPS_NAME --body ${{ env.DPS_DEPLOYMENT }}
+          CONN=$(az iot hub connection-string show --resource-group ${{ secrets.RESOURCE_GROUP}} --query [0].connectionString -o tsv)
+          gh variable set IOT_HUB_CONNECTION --body $CONN
       env:
         GITHUB_TOKEN: ${{ secrets.PAT }}
