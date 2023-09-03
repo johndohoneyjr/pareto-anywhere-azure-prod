@@ -34,15 +34,14 @@ jobs:
     - name: Create Device Provisioning Service Enrollment
       shell: bash
       run: |
-        az iot dps create --name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --location ${{ secrets.AZURE_REGION}} --auth-type key
+        az iot dps create --name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --location ${{ secrets.AZURE_REGION}}
         az iot dps enrollment show --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ vars.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
 
     # Create Device Provisioning Service Enrollment Group
     - name: Create Device Provisioning Service Enrollment Group
       shell: bash
       run: |
-        az iot dps enrollment-group create --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ vars.IOT_DEVICE}}
-        az iot dps enrollment-group create --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ vars.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ vars.IOT_DEVICE}} 
+        az iot dps enrollment-group create --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ vars.IOT_DEVICE}}  --auth-type key
         az iot dps enrollment-group show   --dps-name ${{ vars.DPS_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ vars.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
 
     - name: Print Device Connection data
