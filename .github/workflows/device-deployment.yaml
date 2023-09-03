@@ -8,7 +8,7 @@ env:
 
 
 jobs:
-  build-and-deploy-infrastructure:
+  device-deployment-support:
     runs-on: ubuntu-latest
     steps:
 
