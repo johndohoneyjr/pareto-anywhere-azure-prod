@@ -1,29 +1,33 @@
 #!/usr/bin/env bash
 
 # Environment Variables
-export SUBSCRIPTION_ID=""
-export RESOURCE_GROUP="dohoney2-pareto-poc"
-export LOCATION="westus"
-export SERVICE_PRINCIPAL_NAME="pareto-serviceprincipal"
+
 export GITHUB_REPO="https://github.com/johndohoneyjr/pareto-anywhere-azure-prod"
-GITHUB_TOKEN=""
+export RESOURCE_GROUP="myiot-resources-$RANDOM"
+export SERVICE_PRINCIPAL_NAME="pareto-serviceprincipal-$RANDOM"
 
-# Make sure github cli is installed -- for adding the secret to GH Actions
-# https://github.com/cli/cli
-#
-command -v gh >/dev/null 2>&1 || { echo >&2 "I require gh cli for this script, but it's not installed, download gh at: https://github.com/cli/cli .  Aborting."; exit 1; }
+echo "You must set the SUBSCRIPTION ID for your account, here is a table of available subscriptions..."
+az account subscription list --query "[].{Name:displayName, ID:subscriptionId}" -o table
+echo "Enter the subscription ID you wish to use..."
+read MY_ID
+export SUBSCRIPTION_ID=$MY_ID
+echo ""
+echo "You must set the location to place your resources, here is a table of available locations..."
+echo ""
+az account list-locations --query "[].{Name:displayName, RegionID:name}" -o table
+echo "Enter the location you wish to use..."
+read MY_LOCATION
+export LOCATION=$MY_LOCATION
 
-# Make sure jq is installed -- very handy command line tool
-# https://stedolan.github.io/jq/download/
-#
-command -v jq >/dev/null 2>&1 || { echo >&2 "I require jq for this script, but it's not installed, download jq at: https://stedolan.github.io/jq/download/.  Aborting."; exit 1; }
+clear
 
 if [[ -z "${SUBSCRIPTION_ID}" ]]; then
   clear
+  az account subscription list --query "[].{Name:displayName, ID:subscriptionId}" -o table
   echo "Please set SUBSCRIPTION_ID to the account you wish to use"
   exit 1
 else 
-  echo "Using Subscription ID=$SUBSCRIPTION_ID for the following command set"
+  echo "Using Subscription ID = $SUBSCRIPTION_ID for the following command set"
 fi
 
 if [[ -z "${RESOURCE_GROUP}" ]]; then
@@ -31,16 +35,16 @@ if [[ -z "${RESOURCE_GROUP}" ]]; then
   echo "Please set RESOURCE_GROUP for the account you wish to use"
   exit 1
 else 
-  echo "Using Resource Group =$RESOURCE_GROUP for the following commands"
+  echo "Using Resource Group = $RESOURCE_GROUP for the following commands"
 fi
 
 if [[ -z "${LOCATION}" ]]; then
   clear
   echo "Please set LOCATION for the location you wish to use for set up, locations availaable..."
-  az account list-locations | jq .[].metadata.pairedRegion[].name
+  az account list-locations --query [].metadata.pairedRegion[].name | sort
   exit 1
 else 
-  echo "Using Resource Group =$LOCATION for the following commands"
+  echo "Using Azure Region = $LOCATION for the following commands"
 fi
 
 if [[ -z "${SERVICE_PRINCIPAL_NAME}" ]]; then
@@ -59,12 +63,6 @@ else
   echo "Using Github Repo = $GITHUB_REPO for GH Actions secrets"
 fi
 
-# Upgrade CLI
-echo ""
-echo "Checking to see if Azure CLI needs to be upgraded..."
-echo ""
-az upgrade
-
 # Login to Owner account
 echo ""
 echo "Logging you into your account ..."
@@ -75,16 +73,12 @@ echo "Creating resource group - $RESOURCE_GROUP"
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
 echo "Creating Resource Group Scoped Service Principal..."
-az ad sp create-for-rbac --name $SERVICE_PRINCIPAL_NAME --role Contributor --scopes /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP  --sdk-auth > gh-secret.json
-export clientID=$(cat gh-secret.json | jq -r .clientId)
-
-echo "Add Api Permissions ... add the graph api with Application.ReadWrite.All, then grant it, and finally consent to it"
-az ad app permission add --id $clientID --api 00000003-0000-0000-c000-000000000000 --api-permissions 1bfefb4e-e0b5-418b-a88f-73c46d2cc8e9=Role
-# The directory needs some propogation time.
-sleep 10
-
+az ad sp create-for-rbac --name $SERVICE_PRINCIPAL_NAME --role Contributor --scopes /subscriptions/$SUBSCRIPTION_ID  --sdk-auth > gh-secret.json
 
 # Authenticate to Github 
+
+# This is to force a Github Login -- DONT Erase this :)
+GITHUB_TOKEN=""
 echo ""
 echo "Logging into Github to set the service principal as a secret for Github actions automation.."
 gh auth login
@@ -106,7 +100,14 @@ else
 fi
 
 echo "Setting Subscription ID Github Secret for Github Actions automation..."
-gh secret set SUBSCRIPTION_ID -r $GITHUB_REPO --body $SUBSCRIPTION_ID
+gh secret set SUBSCRIPTION_ID -r $GITHUB_REPO --body "$SUBSCRIPTION_ID"
+gh secret set SUBSCRIPTION_ID -a codespaces -r $GITHUB_REPO --body "$SUBSCRIPTION_ID"
 
 echo "Setting Resource Group Name as Github Secret for Github Actions automation..."
-gh secret set RESOURCE_GROUP -r $GITHUB_REPO --body $RESOURCE_GROUP
+gh secret set RESOURCE_GROUP -r $GITHUB_REPO --body "$RESOURCE_GROUP"
+gh secret set RESOURCE_GROUP -a codespaces -r $GITHUB_REPO --body "$RESOURCE_GROUP"
+
+echo "Setting Azufre Region Location Name as Github Secret for Github Actions automation..."
+gh secret set AZURE_REGION -r $GITHUB_REPO --body "$LOCATION"
+gh secret set AZURE_REGION -a codespaces -r $GITHUB_REPO --body "$LOCATION"
+rm gh-secret.json
