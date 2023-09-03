@@ -11,7 +11,7 @@ jobs:
 
     - name: Set variable for DPS Configuration
       run: |
-          gh variable set IOT_HUB -b$bsamsHub
+          gh variable set IOT_HUB -bsamsHub
           CONN=$(az iot hub connection-string show  -n samsHub  --default --output tsv)
           gh variable set IOT_HUB_CONNECTION -b$CON
           gh variable set IOT_DEVICE -biot-pareto-device
