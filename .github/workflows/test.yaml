@@ -1,4 +1,41 @@
- gh variable set IOT_HUB -bsamsHub
-  gh variable set IOT_HUB_CONNECTION -b$(az iot hub connection-string show  -n samsHub  --default --output tsv)
-  gh variable set IOT_DEVICE -biot-pareto-device
-  gh variable set DPS_NAME -b"ParetoDeployment"
+name: Azure Pareto Deployment
+on:
+  workflow_dispatch:
+
+
+# Environment Variables
+env:
+  HUB_RULE_NAME: "aruba-hub-rule"
+  AZURE_FUNCTIONAPP_NAME: 'pareto-function-apps'  
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'    
+  NODE_VERSION: '16.x' 
+  DEVICE_NAME: 'iot-pareto-device'
+  Config-hubname: ''
+  Config-hubendpoint: ''
+  Config-eventhubName: ''
+  Config-namespaceName: ''
+  Config-pubsubName: ''
+  Config-psendpoint: ''
+  Config-saName: ''
+  Config-storageConnection: ''
+  Config-sendAppSetting: ''
+  SLOT: 'production'
+
+
+jobs:
+  build-and-deploy-infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@main
+
+    - name: Set variable for DPS Configuration
+      run: |
+          gh variable set IOT_HUB -b$bsamsHub
+          CONN=$(az iot hub connection-string show  -n samsHub  --default --output tsv)
+          gh variable set IOT_HUB_CONNECTION -b$CON
+          gh variable set IOT_DEVICE -biot-pareto-device
+          gh variable set DPS_NAME -bParetoDeployment
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT }}
+
