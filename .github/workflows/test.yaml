@@ -1,26 +1,6 @@
-name: Azure Pareto Deployment
+name: Test Vars
 on:
   workflow_dispatch:
-
-
-# Environment Variables
-env:
-  HUB_RULE_NAME: "aruba-hub-rule"
-  AZURE_FUNCTIONAPP_NAME: 'pareto-function-apps'  
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'    
-  NODE_VERSION: '16.x' 
-  DEVICE_NAME: 'iot-pareto-device'
-  Config-hubname: ''
-  Config-hubendpoint: ''
-  Config-eventhubName: ''
-  Config-namespaceName: ''
-  Config-pubsubName: ''
-  Config-psendpoint: ''
-  Config-saName: ''
-  Config-storageConnection: ''
-  Config-sendAppSetting: ''
-  SLOT: 'production'
-
 
 jobs:
   build-and-deploy-infrastructure:
