@@ -167,7 +167,6 @@ jobs:
     - name: IOT Hub Environment
       shell: bash
       run: |
-        az iot hub device-identity create --device-id ${{env.DEVICE_NAME}} --hub-name ${{ github.event.inputs.iot-hub-name }}
         hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
         # Event Hub-compatible endpoint
         export hubendpoint=$(az iot hub connection-string show  -n ${{ github.event.inputs.iot-hub-name }}  --default --output tsv)
