@@ -167,17 +167,13 @@ jobs:
     - name: IOT Hub Environment
       shell: bash
       run: |
-        hubname=$(az iot hub show  --name ${{ github.event.inputs.iot-hub-name }}  | jq .name)
         # Event Hub-compatible endpoint
         export hubendpoint=$(az iot hub connection-string show  -n ${{ github.event.inputs.iot-hub-name }}  --default --output tsv)
 
         # set them as GitHub ENV variables
-        echo "Config-hubname=$hubname" >> $GITHUB_ENV
+        echo "Config-hubname=${{ github.event.inputs.iot-hub-name }}" >> $GITHUB_ENV
         echo "Config-hubendpoint=$hubendpoint" >> $GITHUB_ENV
 
-        # retrieve these GitHub ENV variables
-        echo "Hubname: ${{ env.Config-hubname }} using Connection String: ${{ env.Config-hubendpoint }}"
-    
     # Create Function App Configuration
     - name: Set FunctionApp Configuration
       shell: bash
