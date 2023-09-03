@@ -123,8 +123,8 @@ jobs:
          export pubsubName="pubsub$RANDOM"
          # set them as GitHub ENV variables
          echo "Config-pubsubName=$pubsubName" >> $GITHUB_ENV
-         az webpubsub create -n $pubsubName -group ${{ secrets.RESOURCE_GROUP}} -l ${{ secrets.AZURE_REGION}}  --sku Free_F1
-         psendpoint=$(az webpubsub key show  --name $pubsubName --resource-group ${{ secrets.RESOURCE_GROUP}} --query primaryConnectionString --output tsv)
+         az webpubsub create -n $pubsubName -g ${{ secrets.RESOURCE_GROUP}} -l ${{ secrets.AZURE_REGION}}  --sku Free_F1
+         psendpoint=$(az webpubsub key show  -n $pubsubName -g ${{ secrets.RESOURCE_GROUP}} --query primaryConnectionString -o tsv)
          echo "Config-psendpoint=$psendpoint" >> $GITHUB_ENV
       
     # Create Storage Account and remaining configuration variables
