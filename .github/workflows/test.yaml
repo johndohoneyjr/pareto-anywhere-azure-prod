@@ -8,6 +8,12 @@ jobs:
     steps:
 
     - uses: actions/checkout@main
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.CLUSTER_SERVICE_PRINCIPAL }}
+
+    - name: Install az cli 
+      uses: ./.github/actions/install-az-cli
 
     - name: Set variable for DPS Configuration
       run: |
