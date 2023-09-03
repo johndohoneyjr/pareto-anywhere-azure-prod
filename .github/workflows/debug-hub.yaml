@@ -187,3 +187,11 @@ jobs:
        az functionapp config appsettings set --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --settings "web_pub_sub_hub_name=${{ env.Config-pubsubName }}"
        # Restart Function App with new configuration
        az functionapp restart --name ${{ github.event.inputs.function-app-name }} --resource-group ${{ secrets.RESOURCE_GROUP}}
+
+    - name: Set variable for DPS Configuration
+      run: |
+          gh variable set IOT_HUB -b${{ env.Config-hubname }}
+          gh variable set IOT_HUB_CONNECTION -b${{ env.Config-hubendpoint }}
+          gh variable set IOT_DEVICE -b${{ env.DEVICE_NAME }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.PAT }}
