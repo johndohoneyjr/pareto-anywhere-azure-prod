@@ -15,13 +15,16 @@ jobs:
     - name: Install az cli 
       uses: ./.github/actions/install-az-cli
 
+    - name: Set default subscription
+      run: az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
+
     - name: Set variable for DPS Configuration
       run: |
           gh variable set IOT_HUB -bsamsHub
-          CONN=$(az iot hub connection-string show  -n samsHub  --default --output tsv)
-          gh variable set IOT_HUB_CONNECTION -b$CON
           gh variable set IOT_DEVICE -biot-pareto-device
           gh variable set DPS_NAME -bParetoDeployment
+          CONN=$(az iot hub connection-string show  -n samsHub  --default --output tsv)
+          gh variable set IOT_HUB_CONNECTION -b$CON
       env:
         GITHUB_TOKEN: ${{ secrets.PAT }}
 
