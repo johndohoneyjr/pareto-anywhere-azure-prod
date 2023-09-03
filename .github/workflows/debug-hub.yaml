@@ -81,7 +81,10 @@ jobs:
         az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
         # create IOT Hub
         az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --partition-count 2 --location ${{ secrets.AZURE_REGION}} 
-    
+        #
+        # Adding a Sleep, as sometimes the following commands can not find the Hub
+        sleep 60
+        az iot hub show --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}}
         az iot hub device-identity create --device-id ${{env.DEVICE_NAME}} --hub-name ${{ github.event.inputs.iot-hub-name }}
         az iot hub device-identity connection-string show --device-id ${{env.DEVICE_NAME}} --hub-name ${{ github.event.inputs.iot-hub-name }}
 
