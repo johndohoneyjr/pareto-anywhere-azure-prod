@@ -4,7 +4,8 @@ jobs:
   set_variable:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@main
       - name: Set variable in DPS environment
-        run: gh secret set IOT_HUB -b"DohoneyDevices" 
+        run: gh variable set IOT_HUB -b"DohoneyDevices" 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
