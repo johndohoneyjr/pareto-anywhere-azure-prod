@@ -31,15 +31,15 @@ jobs:
     - name: Create Device Provisioning Service Enrollment
       shell: bash
       run: |
-        az iot dps enrollment create --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ var.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ var.IOT_DEVICE}} 
-        az iot dps enrollment show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ var.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
+        az iot dps enrollment create --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ env.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ env.IOT_DEVICE}} 
+        az iot dps enrollment show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ env.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
 
     # Create Device Provisioning Service Enrollment Group
     - name: Create Device Provisioning Service Enrollment Group
       shell: bash
       run: |
-        az iot dps enrollment-group create --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ var.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ var.IOT_DEVICE}} 
-        az iot dps enrollment-group show   --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ var.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
+        az iot dps enrollment-group create --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ env.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ env.IOT_DEVICE}} 
+        az iot dps enrollment-group show   --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ env.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
 
     - name: Print Device Connection data
       shell: bash
