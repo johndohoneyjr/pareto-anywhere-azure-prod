@@ -23,7 +23,7 @@ jobs:
           gh variable set IOT_HUB -bsamsHub
           gh variable set IOT_DEVICE -biot-pareto-device
           gh variable set DPS_NAME -bParetoDeployment
-          CONN=$(az iot hub connection-string show  -n samsHub --default-eventhub --output tsv)
+          CONN=$(az iot hub connection-string show --resource-group $RESOURCE_GROUP --query [0].connectionString -o tsv)
           gh variable set IOT_HUB_CONNECTION -b$CON
       env:
         GITHUB_TOKEN: ${{ secrets.PAT }}
