@@ -25,7 +25,7 @@ jobs:
     - name: Create Device Provisioning Service
       shell: bash
       run: |
-        az iot hub device-identity create --device-id ${{ env.IOT_DEVICE}} --hub-name ${{ env.IOT_HUB}} 
+        az iot hub device-identity create --device-id ${{ vars.IOT_DEVICE}} --hub-name ${{ vars.IOT_HUB}} 
 
     # Create Device Provisioning Service Enrollment
     - name: Create Device Provisioning Service Enrollment
