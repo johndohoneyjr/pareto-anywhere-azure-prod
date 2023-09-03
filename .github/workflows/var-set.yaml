@@ -8,4 +8,4 @@ jobs:
       - name: Set variable in DPS environment
         run: gh variable set IOT_HUB -b"DohoneyDevices" 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
