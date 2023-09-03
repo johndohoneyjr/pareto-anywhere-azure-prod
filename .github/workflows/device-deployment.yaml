@@ -1,0 +1,49 @@
+name: Device Provisioning Deployment
+on:
+  workflow_dispatch:
+
+# Environment Variables
+env:
+  HUB_Config-dpsName: "Pareto-Deployment-Service"
+
+
+jobs:
+  build-and-deploy-infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@main
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.CLUSTER_SERVICE_PRINCIPAL }}
+
+    - name: Install az cli 
+      uses: ./.github/actions/install-az-cli
+
+    # Create Device in Hub
+    - name: Create Device Provisioning Service
+      shell: bash
+      run: |
+        az iot hub device-identity create --device-id ${{ var.IOT_DEVICE}} --hub-name ${{ var.IOT_HUB}} 
+
+    # Create Device Provisioning Service Enrollment
+    - name: Create Device Provisioning Service Enrollment
+      shell: bash
+      run: |
+        az iot dps enrollment create --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ var.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ var.IOT_DEVICE}} 
+        az iot dps enrollment show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ var.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
+
+    # Create Device Provisioning Service Enrollment Group
+    - name: Create Device Provisioning Service Enrollment Group
+      shell: bash
+      run: |
+        az iot dps enrollment-group create --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ var.IOT_DEVICE}}  --attestation-type symmetrickey --device-id ${{ var.IOT_DEVICE}} 
+        az iot dps enrollment-group show   --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --enrollment-id ${{ var.IOT_DEVICE}}  --query attestation.symmetricKey.primaryKey
+
+    - name: Print Device Connection data
+      shell: bash
+      run: |
+        echo "DPS Primary Key: $(az iot dps policy show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --policy-name provisioningserviceowner --query primaryKey )"
+        echo "Connection Variables: $(az iot dps policy show --dps-name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --policy-name provisioningserviceowner )"
+        echo "DPS ID Scope: $(az iot dps show --name ${{ env.Config-dpsName }} --resource-group ${{ secrets.RESOURCE_GROUP}} --query properties.idScope -o tsv)"
