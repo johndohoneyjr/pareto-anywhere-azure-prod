@@ -78,6 +78,7 @@ jobs:
     - name: Create IOT Hub
       shell: bash
       run: |
+        az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
         # create IOT Hub
         az iot hub create --name ${{ github.event.inputs.iot-hub-name }} --resource-group ${{ secrets.RESOURCE_GROUP}} --sku F1 --partition-count 2 --location ${{ secrets.AZURE_REGION}} 
     
@@ -99,6 +100,7 @@ jobs:
     - name: Create Event Hub
       shell: bash
       run: |
+        az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
         # define variables for configuration to set for Azure Functions
         namespaceName="aruba$RANDOM"
         eventhubName="arubahub$RANDOM"
@@ -117,6 +119,7 @@ jobs:
     - name: Create WebPubSub
       shell: bash
       run: |
+         az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
          export pubsubName="pubsub$RANDOM"
          # set them as GitHub ENV variables
          echo "Config-pubsubName=$pubsubName" >> $GITHUB_ENV
@@ -128,6 +131,7 @@ jobs:
     - name: Create Storage Account
       shell: bash
       run: |
+         az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
          export saName="arubastorage$RANDOM"
          # set them as GitHub ENV variables
          echo "Config-saName=$saName" >> $GITHUB_ENV
@@ -142,6 +146,7 @@ jobs:
     - name: Create Function App
       shell: bash
       run: |
+        az account set --subscription ${{secrets.SUBSCRIPTION_ID}}
         premiumPlan="pareto-premium-plan-$RANDOM"
         functionApp="pareto-function-$RANDOM"
         skuPlan="EP1"
